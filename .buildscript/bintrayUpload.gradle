@@ -1,0 +1,83 @@
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+install {
+  repositories.mavenInstaller {
+    // This generates POM.xml with proper parameters
+    pom.project {
+      groupId = GROUP
+      artifactId = POM_ARTIFACT_ID
+      name POM_NAME
+      version = VERSION_NAME
+      packaging POM_PACKAGING
+
+      url POM_URL
+      description POM_DESCRIPTION
+
+      licenses {
+        license {
+          name POM_LICENCE_NAME
+          url POM_LICENCE_URL
+          distribution POM_LICENCE_DIST
+        }
+      }
+
+      developers {
+        developer {
+          id POM_DEVELOPER_ID
+          name POM_DEVELOPER_NAME
+          email POM_DEVELOPER_EMAIL
+        }
+      }
+
+      scm {
+        url POM_SCM_URL
+        connection POM_SCM_CONNECTION
+        developerConnection POM_SCM_DEV_CONNECTION
+      }
+    }
+  }
+}
+
+task sourcesJar(type: Jar) {
+  from android.sourceSets.main.java.srcDirs
+  classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+  source = android.sourceSets.main.java.srcDirs
+  classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+}
+
+artifacts {
+  archives javadocJar
+  archives sourcesJar
+}
+
+// javadoc configuration
+javadoc {
+  options {
+    encoding "UTF-8"
+    charSet 'UTF-8'
+  }
+}
+
+// bintray configuration
+bintray {
+  user = BINTRAY_USER
+  key = BINTRAY_API_KEY
+  configurations = ['archives']
+  pkg {
+    repo = "maven"
+    name = BINTRAY_PKG_NAME
+    websiteUrl = BINTRAY_PKG_WEBSITE_URL
+    vcsUrl = BINTRAY_PKG_VCS_URL
+    licenses = ["Apache-2.0"]
+    publish = true
+  }
+}
