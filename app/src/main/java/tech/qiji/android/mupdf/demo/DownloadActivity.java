@@ -29,23 +29,25 @@ import tech.qiji.android.mupdf.MuPDFActivity;
 import tech.qiji.android.mupdf.demo.download.DownloadProgressHandler;
 import tech.qiji.android.mupdf.demo.download.ProgressHelper;
 import tech.qiji.android.mupdf.demo.utilities.IOUtils;
-import tech.qiji.android.mupdf.demo.utilities.RxUtils;
 
 public class DownloadActivity extends Activity {
 
-  private CompositeSubscription mSubscriptions = new CompositeSubscription();
+  private CompositeSubscription mCompositeSubscription
+      = new CompositeSubscription();
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_download);
     ButterKnife.bind(this);
-    mSubscriptions = RxUtils.getNewCompositeSubIfUnsubscribed(mSubscriptions);
   }
 
   @Override protected void onDestroy() {
     super.onDestroy();
     ButterKnife.unbind(this);
-    RxUtils.unSubscribeIfNotNull(mSubscriptions);
+    if (mCompositeSubscription != null && !mCompositeSubscription.isUnsubscribed()) {
+      mCompositeSubscription.unsubscribe();
+      mCompositeSubscription = null;
+    }
   }
 
   @OnClick(R.id.start_download_btn) public void onClickButton() {
@@ -99,8 +101,7 @@ public class DownloadActivity extends Activity {
         }
       }
     });
-
-    mSubscriptions.add(retrofit.download()
+    mCompositeSubscription.add(retrofit.download()
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Action1<ResponseBody>() {
@@ -127,4 +128,6 @@ public class DownloadActivity extends Activity {
           }
         }));
   }
+
+
 }
